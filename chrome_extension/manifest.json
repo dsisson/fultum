@@ -1,11 +1,16 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "DOM Element Highlighter",
-    "version": "1.0",
-    "description": "Highlight DOM elements on mouseover",
+    "version": "1.1",
+    "description": "Select and label DOM elements.",
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "contextMenus",
+        "storage"
     ],
+    "background": {
+        "service_worker": "background.js"
+    },
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
