@@ -1,7 +1,17 @@
-// background.js
+/**
+ * Log a message with an optional data object
+ * @param {string} message - The message to log
+ * @param {any} [data] - Optional data to log
+ */
+const log = (message, data = null) => {
+    const timestamp = new Date().toISOString();
+    console.log(`${timestamp} - ${message}`, data || '');
+};
 
-// Create context menu items
-chrome.runtime.onInstalled.addListener(function() {
+/**
+ * Create context menu items
+ */
+const createContextMenuItems = () => {
     chrome.contextMenus.create({
         id: "labelElement",
         title: "Label Element",
@@ -12,23 +22,27 @@ chrome.runtime.onInstalled.addListener(function() {
         title: "Show All Labels",
         contexts: ["all"],
     });
-});
+    log('Context menu items created');
+};
 
-// Handle context menu clicks
-chrome.contextMenus.onClicked.addListener(function(info, tab) {
+/**
+ * Handle context menu clicks
+ * @param {Object} info - Information about the clicked menu item and page where the click occurred
+ * @param {Object} tab - Information about the tab where the click occurred
+ */
+const handleContextMenuClick = (info, tab) => {
     if (info.menuItemId === "labelElement") {
         chrome.tabs.sendMessage(tab.id, {action: "labelElement"});
+        log('Label Element action sent to content script', {tabId: tab.id});
     } else if (info.menuItemId === "showLabels") {
         chrome.tabs.sendMessage(tab.id, {action: "showLabels"});
+        log('Show Labels action sent to content script', {tabId: tab.id});
     }
-});
+};
 
-// Only show context menu items when Ctrl is pressed
-chrome.runtime.onConnect.addListener(function(port) {
-    if (port.name === "ctrlCheck") {
-        port.onMessage.addListener(function(msg) {
-            chrome.contextMenus.update("labelElement", {visible: msg.ctrlPressed});
-            chrome.contextMenus.update("showLabels", {visible: msg.ctrlPressed});
-        });
-    }
-});
+// Event Listeners
+chrome.runtime.onInstalled.addListener(createContextMenuItems);
+chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
+
+// Initialization log
+log('Background script initialized');
