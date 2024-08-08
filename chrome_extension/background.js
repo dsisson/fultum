@@ -22,6 +22,11 @@ const createContextMenuItems = () => {
         title: "Show All Labels",
         contexts: ["all"],
     });
+    chrome.contextMenus.create({
+        id: "saveCurrentPageData",
+        title: "Save Current Page Data",
+        contexts: ["all"],
+    });
     log('Context menu items created');
 };
 
@@ -32,12 +37,13 @@ const createContextMenuItems = () => {
  */
 const handleContextMenuClick = (info, tab) => {
     if (info.menuItemId === "labelElement") {
-        chrome.tabs.sendMessage(tab.id, {action: "labelElement"});
-        log('Label Element action sent to content script', {tabId: tab.id});
+        chrome.tabs.sendMessage(tab.id, { action: "labelElement" });
     } else if (info.menuItemId === "showLabels") {
-        chrome.tabs.sendMessage(tab.id, {action: "showLabels"});
-        log('Show Labels action sent to content script', {tabId: tab.id});
+        chrome.tabs.sendMessage(tab.id, { action: "showLabels" });
+    } else if (info.menuItemId === "saveCurrentPageData") {
+        chrome.tabs.sendMessage(tab.id, { action: "saveCurrentPageData" });
     }
+    log('Context menu item clicked', { menuItemId: info.menuItemId, tabId: tab.id });
 };
 
 /**
@@ -54,9 +60,11 @@ let labelFormWindowId = null;
  */
 let originTabId = null;
 
+// Add event listener for context menu clicks
+chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
+
 // Event Listeners
 chrome.runtime.onInstalled.addListener(createContextMenuItems);
-chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
 /**
  * Handle messages from content scripts and popup

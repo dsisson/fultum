@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Functional Areas Mapper",
-    "version": "1.3",
+    "version": "1.4",
     "description": "Identify functional areas for a page, and sub-FA children.",
     "permissions": [
         "activeTab",
