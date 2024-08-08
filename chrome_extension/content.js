@@ -17,6 +17,64 @@ const log = (message, data = null) => {
     console.log(`${timestamp} - ${message}`, data || '');
 };
 
+/**
+ * Generate a suggested filename based on the current page's URL with a formatted timestamp
+ * @returns {string} The suggested filename
+ */
+const generateTimestampedFilename = () => {
+    const pageUrl = new URL(window.location.href);
+    const hostname = pageUrl.hostname;
+    const pathname = pageUrl.pathname.replace(/\//g, '_');
+
+    // Get the current date and time
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const formattedHours = hours % 12 === 0 ? 12 : hours % 12; // Convert to 12-hour format
+
+    // Construct the timestamp
+    const timestamp = `${year}-${month}-${day}-${formattedHours}:${minutes}${ampm}`;
+
+    // Construct the filename
+    return `${hostname}__${pathname}_${timestamp}.json`;
+};
+
+/**
+ * Serialize the current page's data model to JSON and trigger a download with a timestamped filename
+ */
+const saveCurrentPageData = () => {
+    // Retrieve the current page's data model
+    const dataModel = {
+        pageName: state.pageName,
+        functionalAreas: state.functionalAreas
+    };
+
+    // Serialize the data model to JSON
+    const jsonString = JSON.stringify(dataModel, null, 2);
+
+    // Create a data URL for the JSON string
+    const dataUrl = `data:text/json;charset=utf-8,${encodeURIComponent(jsonString)}`;
+
+    // Create a temporary anchor element to trigger the download
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = dataUrl;
+
+    // Generate a filename with a timestamp
+    const filename = generateTimestampedFilename();
+    downloadAnchor.download = filename;
+
+    // Append the anchor to the document, trigger the download, and remove the anchor
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+
+    log('Current page data saved', { filename });
+};
+
 // UI functions
 /**
  * Highlight the given element
@@ -262,6 +320,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === 'showLabels') {
         log('Show Labels action received');
         showLabels();
+    } else if (request.action === 'saveCurrentPageData') {
+        saveCurrentPageData();
+        sendResponse({ success: true });
     }
 });
 
